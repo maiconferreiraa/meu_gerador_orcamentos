@@ -14,6 +14,9 @@
 </head>
 <body>
 
+    <img id="companyLogo" src="image/logo.jpeg" crossorigin="anonymous" style="display: none;">
+
+
     <div class="container mt-5 mb-5">
         
         <div class="text-center">
@@ -97,10 +100,35 @@
 
     <script>
         
-        // ***************************************************************
-        // PASSO 3: COLE O CÓDIGO DO SEU LOGO AQUI DENTRO DAS ASPAS
-        // ***************************************************************
-        const logoBase64 = "data:image/png;base64,COLE-AQUELE-TEXTO-ENORME-AQUI";
+        // --- CÓDIGO PARA PROCESSAR A IMAGEM ---
+        
+        // Função para converter a imagem em Base64 para incluir no PDF
+        function getBase64Image(img) {
+            const canvas = document.createElement("canvas");
+            // Usa naturalWidth/Height para garantir que pegue o tamanho original
+            canvas.width = img.naturalWidth; 
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            // Retorna o tipo de imagem correto (JPEG)
+            return canvas.toDataURL("image/jpeg"); 
+        }
+
+        let logoBase64 = ''; // Deixamos vazio, será preenchido quando a página carregar
+        const companyLogoElement = document.getElementById('companyLogo');
+
+        // Garante que o logo seja carregado e convertido antes de tudo
+        companyLogoElement.onload = function() {
+            logoBase64 = getBase64Image(companyLogoElement);
+            console.log("Logo carregado e convertido!");
+        };
+        // Se a imagem falhar ao carregar (ex: caminho errado)
+        companyLogoElement.onerror = function() {
+            console.error("Erro ao carregar a imagem do logo. Verifique o caminho 'image/logo.jpeg'");
+            alert("Erro: Não foi possível carregar o logo. Verifique se o arquivo 'logo.jpeg' está na pasta 'image'.");
+        };
+
+        // --- FIM DO CÓDIGO DA IMAGEM ---
 
 
         function addItem() {
@@ -129,10 +157,15 @@
         }
 
         function generatePDF() {
-            // Verifica se você colou o logo
-            if (logoBase64 === "data:image/png;base64,COLE-AQUELE-TEXTO-ENORME-AQUI" || logoBase64.length < 100) {
-                alert("Erro: O logo da empresa (Base64) não foi colado no arquivo JavaScript.");
-                return;
+            // Verifica se o logo foi carregado e convertido
+            if (logoBase64.length < 100) {
+                // Tenta converter de novo caso o 'onload' tenha atrasado
+                if (companyLogoElement.complete && companyLogoElement.naturalWidth > 0) {
+                    logoBase64 = getBase64Image(companyLogoElement);
+                } else {
+                    alert("Aguarde, o logo ainda está carregando. Tente novamente em 1 segundo.");
+                    return;
+                }
             }
 
             const { jsPDF } = window.jspdf;
@@ -168,12 +201,12 @@
             // ======== Montagem do PDF ========
 
             // Adiciona o Logo
-            // Ajuste (40, 20) para a LARGURA e ALTURA (em mm) do seu logo no PDF
             try {
-                doc.addImage(logoBase64, 'PNG', 20, 20, 40, 20); 
+                // Adiciona a imagem: (imagemBase64, TIPO, X, Y, Largura, Altura) em mm
+                doc.addImage(logoBase64, 'JPEG', 10, 10, 30, 30); // Ajuste 40, 20 para o tamanho
             } catch (e) {
                 console.error("Erro ao adicionar o logo:", e);
-                alert("Ocorreu um erro ao adicionar o logo no PDF. Verifique o código Base64.");
+                alert("Ocorreu um erro ao adicionar o logo no PDF.");
                 return;
             }
 
