@@ -187,7 +187,16 @@
             itemRows.forEach(row => {
                 const desc = row.querySelector('.item-desc').value;
                 const qty = parseFloat(row.querySelector('.item-qty').value) || 1;
-                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+
+                // --- INÍCIO DA CORREÇÃO PARA VÍRGULA ---
+                // 1. Pega o valor como texto (ex: "150,50")
+                const rawPrice = row.querySelector('.item-price').value;
+                // 2. Troca a vírgula (,) por um ponto (.)
+                const fixedPrice = rawPrice.replace(',', '.');
+                // 3. Agora converte para número
+                const price = parseFloat(fixedPrice) || 0;
+                // --- FIM DA CORREÇÃO ---
+
                 const subtotal = qty * price;
 
                 if (desc && price > 0) {
@@ -202,8 +211,8 @@
 
             // Adiciona o Logo
             try {
-                // Adiciona a imagem: (imagemBase64, TIPO, X, Y, Largura, Altura) em mm
-                doc.addImage(logoBase64, 'JPEG', 10, 10, 30, 30); // Ajuste 40, 20 para o tamanho
+                // Deixando a logo quadrada (30mm x 30mm)
+                doc.addImage(logoBase64, 'JPEG', 20, 20, 30, 30); 
             } catch (e) {
                 console.error("Erro ao adicionar o logo:", e);
                 alert("Ocorreu um erro ao adicionar o logo no PDF.");
@@ -214,18 +223,18 @@
             // Título (Sua Empresa) - Deslocado para não sobrepor o logo
             doc.setFontSize(20);
             doc.setFont('helvetica', 'bold');
-            doc.text(companyName, 20, 50); // Posição Y 50
+            doc.text(companyName, 20, 50 + 5); // Ajustado Y
 
             // Seus Dados - Deslocado
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
-            doc.text(companyAddress, 20, 58); // Posição Y
-            doc.text(`Telefone: ${companyPhone}`, 20, 64); // Posição Y
-            doc.text(`Email: ${companyEmail}`, 20, 70); // Posição Y
+            doc.text(companyAddress, 20, 58 + 5); 
+            doc.text(`Telefone: ${companyPhone}`, 20, 64 + 5); 
+            doc.text(`Email: ${companyEmail}`, 20, 70 + 5); 
 
             // Linha Separadora - Deslocada
             doc.setLineWidth(0.5);
-            doc.line(20, 75, 190, 75); // Posição Y
+            doc.line(20, 75 + 5, 190, 75 + 5); // Posição Y
 
             // Título "Orçamento" e Data
             doc.setFontSize(16);
@@ -238,15 +247,15 @@
             // Dados do Cliente - Deslocado
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
-            doc.text("Para:", 20, 85); // Posição Y
+            doc.text("Para:", 20, 85 + 5); 
             doc.setFont('helvetica', 'normal');
-            doc.text(clientName, 20, 91); // Posição Y
-            doc.text(clientAddress, 20, 97); // Posição Y
-            doc.text(`Telefone: ${clientPhone}`, 20, 103); // Posição Y
+            doc.text(clientName, 20, 91 + 5); 
+            doc.text(clientAddress, 20, 97 + 5); 
+            doc.text(`Telefone: ${clientPhone}`, 20, 103 + 5); 
 
             // Tabela de Itens - Deslocada
             doc.autoTable({
-                startY: 115, // Posição Y
+                startY: 115 + 5, // Posição Y
                 head: [['Descrição do Serviço', 'Qtd', 'Valor Unit.', 'Subtotal']],
                 body: tableBody,
                 theme: 'striped',
