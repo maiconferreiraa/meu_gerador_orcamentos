@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Orçamento - General Cleaning</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 900px; }
+        .card { margin-top: 20px; }
+        .btn-danger { margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5 mb-5">
+        
+        <div class="text-center">
+            <h2>Gerador de Orçamento</h2>
+            <p class="lead">Preencha os dados para gerar um PDF profissional.</p>
+        </div>
+
+        <div class="card p-4 shadow-sm">
+            <h3 class="mb-3">Seus Dados (Empresa)</h3>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Nome da Empresa</label>
+                    <input type="text" id="companyName" class="form-control" value="General Cleaning">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Seu Endereço</label>
+                    <input type="text" id="companyAddress" class="form-control" value="Rua Celestino Rodrigues, 158, Lagoa de Santo Antônio, MG">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Seu Telefone/WhatsApp</label>
+                    <input type="text" id="companyPhone" class="form-control" value="31 8897-7888">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Seu Email/PIX (Opcional)</label>
+                    <input type="text" id="companyEmail" class="form-control" placeholder="seu-email@exemplo.com">
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4 shadow-sm">
+            <h3 class="mb-3">Dados do Cliente</h3>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="clientName" class="form-label">Nome do Cliente</label>
+                    <input type="text" id="clientName" class="form-control" placeholder="Ex: João da Silva" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="clientAddress" class="form-label">Endereço do Cliente</label>
+                    <input type="text" id="clientAddress" class="form-control" placeholder="Ex: Rua das Flores, 123, Bairro" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="clientPhone" class="form-label">Telefone do Cliente</label>
+                    <input type="text" id="clientPhone" class="form-control" placeholder="(XX) 9XXXX-XXXX">
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4 shadow-sm">
+            <h3 class="mb-3">Itens do Orçamento</h3>
+            <div id="items-container">
+                <div class="row item-row mb-2">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control item-desc" placeholder="Descrição (Ex: Limpeza de Sofá 3 lugares)">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" class="form-control item-qty" placeholder="Qtd" value="1" min="1">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" class="form-control item-price" placeholder="Valor (R$)">
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-danger btn-sm" onclick="removeItem(this)">X</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary mt-2" onclick="addItem()">+ Adicionar Item</button>
+        </div>
+
+        <div class="card p-4 shadow-sm">
+            <h3 class="mb-3">Observações e Validade</h3>
+            <textarea id="notes" class="form-control" rows="3" placeholder="Ex: Pagamento via PIX. Validade do orçamento: 7 dias."></textarea>
+        </div>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-success btn-lg" onclick="generatePDF()">Gerar PDF do Orçamento</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
+
+    <script>
+        
+        // ***************************************************************
+        // PASSO 3: COLE O CÓDIGO DO SEU LOGO AQUI DENTRO DAS ASPAS
+        // ***************************************************************
+        const logoBase64 = "data:image/png;base64,COLE-AQUELE-TEXTO-ENORME-AQUI";
+
+
+        function addItem() {
+            const container = document.getElementById('items-container');
+            const itemRow = document.createElement('div');
+            itemRow.className = 'row item-row mb-2';
+            itemRow.innerHTML = `
+                <div class="col-md-6">
+                    <input type="text" class="form-control item-desc" placeholder="Descrição do Serviço">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" class="form-control item-qty" placeholder="Qtd" value="1" min="1">
+                </div>
+                <div class="col-md-3">
+                    <input type="number" class="form-control item-price" placeholder="Valor (R$)">
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-danger btn-sm" onclick="removeItem(this)">X</button>
+                </div>
+            `;
+            container.appendChild(itemRow);
+        }
+
+        function removeItem(button) {
+            button.closest('.item-row').remove();
+        }
+
+        function generatePDF() {
+            // Verifica se você colou o logo
+            if (logoBase64 === "data:image/png;base64,COLE-AQUELE-TEXTO-ENORME-AQUI" || logoBase64.length < 100) {
+                alert("Erro: O logo da empresa (Base64) não foi colado no arquivo JavaScript.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const companyName = document.getElementById('companyName').value;
+            const companyAddress = document.getElementById('companyAddress').value;
+            const companyPhone = document.getElementById('companyPhone').value;
+            const companyEmail = document.getElementById('companyEmail').value;
+
+            const clientName = document.getElementById('clientName').value;
+            const clientAddress = document.getElementById('clientAddress').value;
+            const clientPhone = document.getElementById('clientPhone').value;
+            
+            const itemRows = document.querySelectorAll('.item-row');
+            let tableBody = [];
+            let total = 0;
+
+            itemRows.forEach(row => {
+                const desc = row.querySelector('.item-desc').value;
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 1;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const subtotal = qty * price;
+
+                if (desc && price > 0) {
+                    tableBody.push([desc, qty, `R$ ${price.toFixed(2)}`, `R$ ${subtotal.toFixed(2)}`]);
+                    total += subtotal;
+                }
+            });
+
+            const notes = document.getElementById('notes').value;
+
+            // ======== Montagem do PDF ========
+
+            // Adiciona o Logo
+            // Ajuste (40, 20) para a LARGURA e ALTURA (em mm) do seu logo no PDF
+            try {
+                doc.addImage(logoBase64, 'PNG', 20, 20, 40, 20); 
+            } catch (e) {
+                console.error("Erro ao adicionar o logo:", e);
+                alert("Ocorreu um erro ao adicionar o logo no PDF. Verifique o código Base64.");
+                return;
+            }
+
+
+            // Título (Sua Empresa) - Deslocado para não sobrepor o logo
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text(companyName, 20, 50); // Posição Y 50
+
+            // Seus Dados - Deslocado
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text(companyAddress, 20, 58); // Posição Y
+            doc.text(`Telefone: ${companyPhone}`, 20, 64); // Posição Y
+            doc.text(`Email: ${companyEmail}`, 20, 70); // Posição Y
+
+            // Linha Separadora - Deslocada
+            doc.setLineWidth(0.5);
+            doc.line(20, 75, 190, 75); // Posição Y
+
+            // Título "Orçamento" e Data
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text("ORÇAMENTO", 148, 30);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 148, 36);
+
+            // Dados do Cliente - Deslocado
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Para:", 20, 85); // Posição Y
+            doc.setFont('helvetica', 'normal');
+            doc.text(clientName, 20, 91); // Posição Y
+            doc.text(clientAddress, 20, 97); // Posição Y
+            doc.text(`Telefone: ${clientPhone}`, 20, 103); // Posição Y
+
+            // Tabela de Itens - Deslocada
+            doc.autoTable({
+                startY: 115, // Posição Y
+                head: [['Descrição do Serviço', 'Qtd', 'Valor Unit.', 'Subtotal']],
+                body: tableBody,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [41, 128, 185]
+                }
+            });
+
+            let finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total do Orçamento: R$ ${total.toFixed(2)}`, 190, finalY, { align: 'right' });
+
+            finalY += 15;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Observações e Condições:", 20, finalY);
+            doc.setFont('helvetica', 'normal');
+            doc.text(doc.splitTextToSize(notes, 170), 20, finalY + 5);
+            
+            doc.save(`Orçamento-${clientName.replace(" ", "_")}.pdf`);
+        }
+    </script>
+
+</body>
+</html>
