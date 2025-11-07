@@ -32,12 +32,16 @@
                     <input type="text" id="companyName" class="form-control" value="General Cleaning">
                 </div>
                 <div class="col-md-6 mb-3">
+                    <label class="form-label">Nome do Proprietário</label>
+                    <input type="text" id="companyOwner" class="form-control" value="Rogério Barbosa Ferreira">
+                </div>
+                <div class="col-md-6 mb-3">
                     <label class="form-label">Seu Endereço</label>
-                    <input type="text" id="companyAddress" class="form-control" value="Rua Celestino Rodrigues, 158, Lagoa de Santo Antônio, MG">
+                    <input type="text" id="companyAddress" class="form-control" value="Rua Celestino Rodrigues 91, Lagoa de Santo Antônio, MG">
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Seu Telefone/WhatsApp</label>
-                    <input type="text" id="companyPhone" class="form-control" value="31 8897-7888">
+                    <input type="text" id="companyPhone" class="form-control" value="(31)9 8897-7888">
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Seu Email/PIX (Opcional)</label>
@@ -102,27 +106,22 @@
         
         // --- CÓDIGO PARA PROCESSAR A IMAGEM ---
         
-        // Função para converter a imagem em Base64 para incluir no PDF
         function getBase64Image(img) {
             const canvas = document.createElement("canvas");
-            // Usa naturalWidth/Height para garantir que pegue o tamanho original
             canvas.width = img.naturalWidth; 
             canvas.height = img.naturalHeight;
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0);
-            // Retorna o tipo de imagem correto (JPEG)
             return canvas.toDataURL("image/jpeg"); 
         }
 
-        let logoBase64 = ''; // Deixamos vazio, será preenchido quando a página carregar
+        let logoBase64 = ''; 
         const companyLogoElement = document.getElementById('companyLogo');
 
-        // Garante que o logo seja carregado e convertido antes de tudo
         companyLogoElement.onload = function() {
             logoBase64 = getBase64Image(companyLogoElement);
             console.log("Logo carregado e convertido!");
         };
-        // Se a imagem falhar ao carregar (ex: caminho errado)
         companyLogoElement.onerror = function() {
             console.error("Erro ao carregar a imagem do logo. Verifique o caminho 'image/logo.jpeg'");
             alert("Erro: Não foi possível carregar o logo. Verifique se o arquivo 'logo.jpeg' está na pasta 'image'.");
@@ -159,7 +158,6 @@
         function generatePDF() {
             // Verifica se o logo foi carregado e convertido
             if (logoBase64.length < 100) {
-                // Tenta converter de novo caso o 'onload' tenha atrasado
                 if (companyLogoElement.complete && companyLogoElement.naturalWidth > 0) {
                     logoBase64 = getBase64Image(companyLogoElement);
                 } else {
@@ -171,7 +169,9 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            // --- Pega os dados do formulário ---
             const companyName = document.getElementById('companyName').value;
+            const companyOwner = document.getElementById('companyOwner').value; // <--- NOVO
             const companyAddress = document.getElementById('companyAddress').value;
             const companyPhone = document.getElementById('companyPhone').value;
             const companyEmail = document.getElementById('companyEmail').value;
@@ -187,16 +187,9 @@
             itemRows.forEach(row => {
                 const desc = row.querySelector('.item-desc').value;
                 const qty = parseFloat(row.querySelector('.item-qty').value) || 1;
-
-                // --- INÍCIO DA CORREÇÃO PARA VÍRGULA ---
-                // 1. Pega o valor como texto (ex: "150,50")
                 const rawPrice = row.querySelector('.item-price').value;
-                // 2. Troca a vírgula (,) por um ponto (.)
                 const fixedPrice = rawPrice.replace(',', '.');
-                // 3. Agora converte para número
                 const price = parseFloat(fixedPrice) || 0;
-                // --- FIM DA CORREÇÃO ---
-
                 const subtotal = qty * price;
 
                 if (desc && price > 0) {
@@ -211,8 +204,7 @@
 
             // Adiciona o Logo
             try {
-                // Deixando a logo quadrada (30mm x 30mm)
-                doc.addImage(logoBase64, 'JPEG', 20, 20, 30, 30); 
+                doc.addImage(logoBase64, 'JPEG', 20, 20, 30, 30); // Logo quadrada
             } catch (e) {
                 console.error("Erro ao adicionar o logo:", e);
                 alert("Ocorreu um erro ao adicionar o logo no PDF.");
@@ -220,21 +212,27 @@
             }
 
 
-            // Título (Sua Empresa) - Deslocado para não sobrepor o logo
+            // Título (Sua Empresa)
             doc.setFontSize(20);
             doc.setFont('helvetica', 'bold');
-            doc.text(companyName, 20, 50 + 5); // Ajustado Y
+            doc.text(companyName, 20, 50); 
 
-            // Seus Dados - Deslocado
+            // Seus Dados (com Proprietário)
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
-            doc.text(companyAddress, 20, 58 + 5); 
-            doc.text(`Telefone: ${companyPhone}`, 20, 64 + 5); 
-            doc.text(`Email: ${companyEmail}`, 20, 70 + 5); 
+            let dataY = 58 + 5; // Posição Y inicial (63)
+            doc.text(`Proprietário: ${companyOwner}`, 20, dataY); // <--- ADICIONADO
+            dataY += 6; // Próxima linha
+            doc.text(companyAddress, 20, dataY); 
+            dataY += 6;
+            doc.text(`Telefone: ${companyPhone}`, 20, dataY); 
+            dataY += 6;
+            doc.text(`Email: ${companyEmail}`, 20, dataY); 
+            dataY += 5; // Espaço antes da linha
 
-            // Linha Separadora - Deslocada
+            // Linha Separadora
             doc.setLineWidth(0.5);
-            doc.line(20, 75 + 5, 190, 75 + 5); // Posição Y
+            doc.line(20, dataY, 190, dataY); // Posição Y
 
             // Título "Orçamento" e Data
             doc.setFontSize(16);
@@ -244,18 +242,23 @@
             doc.setFont('helvetica', 'normal');
             doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 148, 36);
 
-            // Dados do Cliente - Deslocado
+            // Dados do Cliente
+            dataY += 10; // Espaço depois da linha
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
-            doc.text("Para:", 20, 85 + 5); 
+            doc.text("Para:", 20, dataY); 
+            dataY += 6;
             doc.setFont('helvetica', 'normal');
-            doc.text(clientName, 20, 91 + 5); 
-            doc.text(clientAddress, 20, 97 + 5); 
-            doc.text(`Telefone: ${clientPhone}`, 20, 103 + 5); 
+            doc.text(clientName, 20, dataY); 
+            dataY += 6;
+            doc.text(clientAddress, 20, dataY); 
+            dataY += 6;
+            doc.text(`Telefone: ${clientPhone}`, 20, dataY); 
 
-            // Tabela de Itens - Deslocada
+            // Tabela de Itens
+            dataY += 12; // Espaço antes da tabela
             doc.autoTable({
-                startY: 115 + 5, // Posição Y
+                startY: dataY, // Posição Y
                 head: [['Descrição do Serviço', 'Qtd', 'Valor Unit.', 'Subtotal']],
                 body: tableBody,
                 theme: 'striped',
