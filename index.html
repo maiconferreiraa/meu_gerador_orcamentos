@@ -171,7 +171,7 @@
 
             // --- Pega os dados do formulário ---
             const companyName = document.getElementById('companyName').value;
-            const companyOwner = document.getElementById('companyOwner').value; // <--- NOVO
+            const companyOwner = document.getElementById('companyOwner').value;
             const companyAddress = document.getElementById('companyAddress').value;
             const companyPhone = document.getElementById('companyPhone').value;
             const companyEmail = document.getElementById('companyEmail').value;
@@ -202,48 +202,54 @@
 
             // ======== Montagem do PDF ========
 
-            // Adiciona o Logo
+            // 1. LOGO (SUBIU)
             try {
-                doc.addImage(logoBase64, 'JPEG', 20, 20, 30, 30); // Logo quadrada
+                // Y mudou de 20 para 10 (mais pra cima)
+                doc.addImage(logoBase64, 'JPEG', 20, 10, 30, 30); 
             } catch (e) {
                 console.error("Erro ao adicionar o logo:", e);
                 alert("Ocorreu um erro ao adicionar o logo no PDF.");
                 return;
             }
 
+            // 2. TÍTULO E DATA (SUBIRAM TAMBÉM)
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            // Y mudou de 30 para 20
+            doc.text("ORÇAMENTO", 148, 20);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            // Y mudou de 36 para 26
+            doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 148, 26);
 
-            // Título (Sua Empresa)
+
+            // 3. DADOS DA EMPRESA (SUBIRAM)
             doc.setFontSize(20);
             doc.setFont('helvetica', 'bold');
-            doc.text(companyName, 20, 50); 
+            // Y mudou de 50 para 45 (logo abaixo da logo)
+            doc.text(companyName, 20, 45); 
 
-            // Seus Dados (com Proprietário)
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
-            let dataY = 58 + 5; // Posição Y inicial (63)
-            doc.text(`Proprietário: ${companyOwner}`, 20, dataY); // <--- ADICIONADO
-            dataY += 6; // Próxima linha
+            
+            // Começa os dados mais para cima (Y=52)
+            let dataY = 52; 
+            
+            doc.text(`Proprietário: ${companyOwner}`, 20, dataY); 
+            dataY += 6;
             doc.text(companyAddress, 20, dataY); 
             dataY += 6;
             doc.text(`Telefone: ${companyPhone}`, 20, dataY); 
             dataY += 6;
             doc.text(`Email: ${companyEmail}`, 20, dataY); 
-            dataY += 5; // Espaço antes da linha
+            dataY += 5; 
 
             // Linha Separadora
             doc.setLineWidth(0.5);
-            doc.line(20, dataY, 190, dataY); // Posição Y
-
-            // Título "Orçamento" e Data
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text("ORÇAMENTO", 148, 30);
-            doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 148, 36);
+            doc.line(20, dataY, 190, dataY); 
 
             // Dados do Cliente
-            dataY += 10; // Espaço depois da linha
+            dataY += 10; 
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.text("Para:", 20, dataY); 
@@ -256,9 +262,9 @@
             doc.text(`Telefone: ${clientPhone}`, 20, dataY); 
 
             // Tabela de Itens
-            dataY += 12; // Espaço antes da tabela
+            dataY += 12; 
             doc.autoTable({
-                startY: dataY, // Posição Y
+                startY: dataY, 
                 head: [['Descrição do Serviço', 'Qtd', 'Valor Unit.', 'Subtotal']],
                 body: tableBody,
                 theme: 'striped',
